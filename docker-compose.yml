@@ -19,6 +19,23 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: notes-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
   backend:
     build: ./backend
     container_name: notes-backend
@@ -28,11 +45,16 @@ services:
       DB_NAME: ${DB_NAME:-notesdb}
       DB_USER: ${DB_USER:-notesuser}
       DB_PASSWORD: ${DB_PASSWORD:-notespass}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CACHE_TTL: ${CACHE_TTL:-60}
       NODE_ENV: ${NODE_ENV:-development}
     ports:
       - "3000:3000"
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - app-network
@@ -58,6 +80,8 @@ services:
 volumes:
   postgres_data:
     name: notes_postgres_data
+  redis_data:
+    name: notes_redis_data
 
 networks:
   app-network:
