@@ -15,7 +15,11 @@
       "Bash(docker logs:*)",
       "Bash(docker stop:*)",
       "Bash(docker rm:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker compose:*)",
+      "Bash(sudo netstat:*)"
     ],
     "deny": [],
     "ask": []
