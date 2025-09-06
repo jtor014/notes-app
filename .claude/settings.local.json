@@ -19,7 +19,10 @@
       "Bash(git checkout:*)",
       "Bash(docker-compose up:*)",
       "Bash(docker compose:*)",
-      "Bash(sudo netstat:*)"
+      "Bash(sudo netstat:*)",
+      "Bash(gh pr create:*)",
+      "Bash(chmod:*)",
+      "Bash(docker-compose:*)"
     ],
     "deny": [],
     "ask": []
