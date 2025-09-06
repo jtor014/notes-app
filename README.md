@@ -274,39 +274,195 @@ The application supports the following environment variables (see `.env.example`
 
 ## Development Workflow
 
-### Frontend Development
-```bash
-# Run frontend in development mode (outside Docker)
-cd frontend
-npm install
-npm run dev
-# Frontend available at http://localhost:5173
+This project supports both **development** and **production** modes with different configurations optimized for each use case.
 
-# Build for production
-npm run build
+### Quick Start for Development
+
+```bash
+# Start development environment with hot-reload
+./scripts/dev.sh
+
+# Or manually:
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ```
 
-### Backend Development
+### Development vs Production Comparison
+
+| Feature | Development Mode | Production Mode |
+|---------|------------------|-----------------|
+| **Frontend** | Vite dev server with HMR | Nginx serving built assets |
+| **Backend** | Nodemon with auto-restart | Node.js direct execution |
+| **Ports** | Frontend: 5173, Backend: 3000 | Frontend: 80, Backend: 3000 |
+| **Code Changes** | ⚡ Instant reload | 🔄 Requires rebuild |
+| **Debugging** | ✅ Debug port 9229 exposed | ❌ No debugging |
+| **Logging** | 📝 Verbose (debug level) | 📄 Production level |
+| **Caching** | 🕐 Short TTL (10s) | 🕐 Normal TTL (60s) |
+| **SQL Logging** | ✅ All queries logged | ❌ Minimal logging |
+| **File Watching** | ✅ Live code sync | ❌ Static builds |
+
+### Development Environment Features
+
+**🔥 Hot-Reload Capabilities:**
+- **Frontend**: Vite HMR updates React components without page refresh
+- **Backend**: Nodemon restarts server automatically on file changes
+- **Volume Mounting**: Live code synchronization between host and containers
+
+**🐛 Debugging Support:**
+- Node.js inspector on port 9229 for backend debugging
+- VSCode launch configuration for easy debugging
+- Chrome DevTools for frontend debugging
+- Detailed error messages and stack traces
+
+**📊 Enhanced Development Experience:**
+- Reduced cache TTL for faster development iterations
+- Verbose logging for all database queries
+- Development-specific environment variables
+- Cross-platform helper scripts
+
+### Using Helper Scripts
+
 ```bash
-# Run backend in development mode (outside Docker)
-cd backend
-npm install
-npm run dev
-# API available at http://localhost:3000
+# Start development environment
+./scripts/dev.sh
+
+# Start production environment  
+./scripts/prod.sh
+
+# View logs (all services or specific service)
+./scripts/logs.sh
+./scripts/logs.sh backend
+
+# Clean reset (removes all containers/volumes)
+./scripts/reset.sh
 ```
 
-### Database Development
+### Manual Development Commands
+
+```bash
+# Development mode (recommended)
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+
+# Production mode
+docker-compose up --build
+
+# View development logs
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
+
+# Stop development environment
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+```
+
+### Development Ports & URLs
+
+**Development Mode:**
+- 🌐 **Frontend**: http://localhost:5173 (Vite dev server with HMR)
+- 🔧 **Backend API**: http://localhost:3000 (Nodemon with auto-restart)
+- 🐛 **Debug Port**: localhost:9229 (Node.js inspector)
+- 📊 **Redis**: localhost:6379
+- 🗄️ **Database**: localhost:5434
+
+**Production Mode:**
+- 🌐 **Application**: http://localhost (Nginx proxy)
+- 🔧 **Backend API**: http://localhost:3000 (direct access)
+
+### VSCode Integration
+
+**🚀 Pre-configured debugging:**
+1. Install recommended extensions when prompted
+2. Start development environment: `./scripts/dev.sh`
+3. Press `F5` or use "Run and Debug" panel
+4. Choose "Attach to Backend (Docker)" to debug Node.js
+5. Choose "Debug Frontend (Chrome)" to debug React
+
+**⚙️ Configured features:**
+- Automatic formatting on save
+- Docker syntax highlighting
+- Path intellisense
+- ESLint integration
+- Tailwind CSS support
+
+### Hot-Reload Testing
+
+**Test Backend Hot-Reload:**
+```bash
+# 1. Start development environment
+./scripts/dev.sh
+
+# 2. Edit backend/src/index.js - add console.log
+# 3. Watch terminal - server should restart automatically
+# 4. Check logs to see your changes
+```
+
+**Test Frontend Hot-Reload:**
+```bash
+# 1. Start development environment  
+./scripts/dev.sh
+
+# 2. Edit frontend/src/App.jsx - change some text
+# 3. Browser should update without refresh
+# 4. React components update instantly
+```
+
+### Database & Redis Development
+
 ```bash
 # Connect to development database
-docker compose exec db psql -U notesuser -d notesdb
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec db psql -U notesuser -d notesdb
 
-# Reset database
-docker compose down -v
-docker compose up -d db
+# View database logs (with SQL queries)
+./scripts/logs.sh db
 
 # Connect to Redis for debugging
-docker compose exec redis redis-cli
-# Redis commands: GET, SET, KEYS, FLUSHALL
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec redis redis-cli
+
+# Common Redis commands
+KEYS *              # List all keys
+GET notes:list      # Get cached notes list
+FLUSHALL           # Clear all cache
+
+# Reset everything for fresh start
+./scripts/reset.sh
+```
+
+### Environment Variables for Development
+
+See `.env.example` for all available configuration options:
+
+```bash
+# Copy and customize environment variables
+cp .env.example .env
+
+# Key development variables:
+NODE_ENV=development
+LOG_LEVEL=debug
+ENABLE_SQL_LOGGING=true
+CACHE_TTL=10
+VITE_API_BASE_URL=http://localhost:3000
+```
+
+### Troubleshooting Development Issues
+
+**Common Issues:**
+- **Port conflicts**: Make sure ports 5173, 3000, 9229 are available
+- **File changes not detected**: Try `./scripts/reset.sh` and restart
+- **Docker permissions**: Ensure Docker has access to project directory
+- **Cache issues**: Clear browser cache or disable caching with `CACHE_ENABLED=false`
+
+**Debug Commands:**
+```bash
+# Check service health
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml ps
+
+# View all logs
+./scripts/logs.sh
+
+# Inspect containers
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec backend sh
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec frontend sh
+
+# Test API connectivity
+curl http://localhost:3000/health
+curl http://localhost:5173/api/health  # Proxied through Vite
 ```
 
 ## What This Implementation Accomplishes
