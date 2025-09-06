@@ -1,0 +1,52 @@
+# Development override for docker-compose.yml
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  backend:
+    build:
+      context: ./backend
+      target: development
+    command: npm run dev
+    volumes:
+      - ./backend/src:/app/src:cached
+      - ./backend/package.json:/app/package.json:cached
+      - ./backend/nodemon.json:/app/nodemon.json:cached
+    environment:
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+      - ENABLE_SQL_LOGGING=true
+      - CACHE_TTL=10  # Shorter TTL for development
+    # Expose additional port for debugging
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Node.js debug port
+
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+      dockerfile: Dockerfile.dev
+    command: npm run dev
+    volumes:
+      - ./frontend/src:/app/src:cached
+      - ./frontend/public:/app/public:cached
+      - ./frontend/package.json:/app/package.json:cached
+      - ./frontend/vite.config.js:/app/vite.config.js:cached
+      - ./frontend/index.html:/app/index.html:cached
+      # Prevent overwriting node_modules
+      - /app/node_modules
+    ports:
+      - "5173:5173"  # Vite dev server
+    environment:
+      - NODE_ENV=development
+      - VITE_API_BASE_URL=http://localhost:3000
+
+  # Redis with reduced memory for development
+  redis:
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+
+  # Database with more verbose logging for development
+  db:
+    environment:
+      - POSTGRES_LOG_STATEMENT=all
+    command: postgres -c log_statement=all -c log_destination=stderr -c logging_collector=off

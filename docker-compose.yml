@@ -37,7 +37,9 @@ services:
     restart: unless-stopped
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      target: production
     container_name: notes-backend
     environment:
       DB_HOST: db
