@@ -3,7 +3,19 @@
     "allow": [
       "Bash(git init:*)",
       "Bash(mkdir:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh repo create:*)",
+      "Bash(docker build:*)",
+      "Read(/usr/bin/**)",
+      "Bash(systemctl status:*)",
+      "Bash(service docker:*)",
+      "Bash(docker run:*)",
+      "Bash(curl:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker rm:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

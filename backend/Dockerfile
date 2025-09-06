@@ -2,9 +2,9 @@ FROM node:18-alpine AS base
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package.json ./
 
-RUN npm ci --only=production
+RUN npm install --only=production
 
 FROM node:18-alpine
 
@@ -14,7 +14,7 @@ RUN adduser -S nodejs -u 1001
 WORKDIR /app
 
 COPY --from=base --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --chown=nodejs:nodejs package*.json ./
+COPY --chown=nodejs:nodejs package.json ./
 COPY --chown=nodejs:nodejs src ./src
 
 USER nodejs
